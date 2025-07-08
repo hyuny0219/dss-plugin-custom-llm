@@ -19,6 +19,62 @@
             },
             "description": "Custom API authentication key",
             "mandatory": true
+        },
+        {
+            "name": "header1_key",
+            "label": "Custom Header 1 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional, per user)",
+            "mandatory": false
+        },
+        {
+            "name": "header1_value",
+            "label": "Custom Header 1 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional, per user)",
+            "mandatory": false
+        },
+        {
+            "name": "header2_key",
+            "label": "Custom Header 2 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional, per user)",
+            "mandatory": false
+        },
+        {
+            "name": "header2_value",
+            "label": "Custom Header 2 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional, per user)",
+            "mandatory": false
+        },
+        {
+            "name": "header3_key",
+            "label": "Custom Header 3 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional, per user)",
+            "mandatory": false
+        },
+        {
+            "name": "header3_value",
+            "label": "Custom Header 3 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional, per user)",
+            "mandatory": false
+        },
+        {
+            "name": "header4_key",
+            "label": "Custom Header 4 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional, per user)",
+            "mandatory": false
+        },
+        {
+            "name": "header4_value",
+            "label": "Custom Header 4 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional, per user)",
+            "mandatory": false
         }
     ]
 }

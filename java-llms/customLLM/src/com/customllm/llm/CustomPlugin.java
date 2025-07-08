@@ -103,15 +103,15 @@ public class CustomPlugin extends CustomLLMClient {
         // access_token을 STRING으로 직접 받음
         String access_token = settings.config.get("access_token").getAsString();
 
-        // 사용자 정의 헤더 키/값 읽기
-        header1_key = settings.config.has("header1_key") ? settings.config.get("header1_key").getAsString() : null;
-        header1_value = settings.config.has("header1_value") ? settings.config.get("header1_value").getAsString() : null;
-        header2_key = settings.config.has("header2_key") ? settings.config.get("header2_key").getAsString() : null;
-        header2_value = settings.config.has("header2_value") ? settings.config.get("header2_value").getAsString() : null;
-        header3_key = settings.config.has("header3_key") ? settings.config.get("header3_key").getAsString() : null;
-        header3_value = settings.config.has("header3_value") ? settings.config.get("header3_value").getAsString() : null;
-        header4_key = settings.config.has("header4_key") ? settings.config.get("header4_key").getAsString() : null;
-        header4_value = settings.config.has("header4_value") ? settings.config.get("header4_value").getAsString() : null;
+        // 사용자 정의 헤더 키/값을 per-user credential에서 읽기
+        header1_key = settings.credential.has("header1_key") ? settings.credential.get("header1_key").getAsString() : null;
+        header1_value = settings.credential.has("header1_value") ? settings.credential.get("header1_value").getAsString() : null;
+        header2_key = settings.credential.has("header2_key") ? settings.credential.get("header2_key").getAsString() : null;
+        header2_value = settings.credential.has("header2_value") ? settings.credential.get("header2_value").getAsString() : null;
+        header3_key = settings.credential.has("header3_key") ? settings.credential.get("header3_key").getAsString() : null;
+        header3_value = settings.credential.has("header3_value") ? settings.credential.get("header3_value").getAsString() : null;
+        header4_key = settings.credential.has("header4_key") ? settings.credential.get("header4_key").getAsString() : null;
+        header4_value = settings.credential.has("header4_value") ? settings.credential.get("header4_value").getAsString() : null;
 
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),

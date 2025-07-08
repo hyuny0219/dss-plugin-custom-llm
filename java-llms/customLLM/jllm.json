@@ -5,13 +5,6 @@
     },
     "params": [
         {
-            "name": "access_token",
-            "label": "Access Token",
-            "type": "STRING",
-            "description": "API access token (Bearer ...)",
-            "mandatory": true
-        },
-        {
             "name": "endpoint_url",
             "label": "Endpoint URL",
             "type": "STRING",

@@ -49,7 +49,7 @@
 ![custom custom connection screenshot](assets/custom-custom-connection.png)
 
 ## 변경 이력
-- Upstage 기반 → Custom LLM 일반화
+- Custom LLM 일반화
 - Access Token 직접 입력 방식으로 변경
 - Preset/키 관리 방식 제거
 - 커스텀 헤더(키/값 쌍) 최대 4개 지원
