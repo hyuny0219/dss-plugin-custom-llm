@@ -21,60 +21,54 @@
             "mandatory": true
         },
         {
-            "name": "header1_key",
-            "label": "Custom Header 1 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional, per user)",
-            "mandatory": false
+            "name": "send_system_name_value",
+            "label": "Send-System-Name",
+            "type": "CREDENTIAL_REQUEST",
+            "credentialRequestSettings": {
+                "type": "SINGLE_FIELD"
+            },
+            "description": "Send-System-Name 헤더의 값 (최초 API 받을 때의 이름, per user)",
+            "mandatory": true
         },
         {
-            "name": "header1_value",
-            "label": "Custom Header 1 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional, per user)",
-            "mandatory": false
+            "name": "user_id_value",
+            "label": "User-Id",
+            "type": "CREDENTIAL_REQUEST",
+            "credentialRequestSettings": {
+                "type": "SINGLE_FIELD"
+            },
+            "description": "User-Id 헤더의 값 (사용자 ID, per user)",
+            "mandatory": true
         },
         {
-            "name": "header2_key",
-            "label": "Custom Header 2 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional, per user)",
-            "mandatory": false
+            "name": "prompt_msg_id_value",
+            "label": "Prompt-Msg-Id",
+            "type": "CREDENTIAL_REQUEST",
+            "credentialRequestSettings": {
+                "type": "SINGLE_FIELD"
+            },
+            "description": "Prompt-Msg-Id 헤더의 값 (16자리 uuid, per user)",
+            "mandatory": true
         },
         {
-            "name": "header2_value",
-            "label": "Custom Header 2 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional, per user)",
-            "mandatory": false
+            "name": "completion_msg_id_value",
+            "label": "Completion-Msg-Id",
+            "type": "CREDENTIAL_REQUEST",
+            "credentialRequestSettings": {
+                "type": "SINGLE_FIELD"
+            },
+            "description": "Completion-Msg-Id 헤더의 값 (16자리 uuid, per user)",
+            "mandatory": true
         },
         {
-            "name": "header3_key",
-            "label": "Custom Header 3 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional, per user)",
-            "mandatory": false
-        },
-        {
-            "name": "header3_value",
-            "label": "Custom Header 3 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional, per user)",
-            "mandatory": false
-        },
-        {
-            "name": "header4_key",
-            "label": "Custom Header 4 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional, per user)",
-            "mandatory": false
-        },
-        {
-            "name": "header4_value",
-            "label": "Custom Header 4 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional, per user)",
-            "mandatory": false
+            "name": "x_dep_ticket_value",
+            "label": "x-dep-ticket",
+            "type": "CREDENTIAL_REQUEST",
+            "credentialRequestSettings": {
+                "type": "SINGLE_FIELD"
+            },
+            "description": "x-dep-ticket 헤더의 값 (API Key, per user)",
+            "mandatory": true
         }
     ]
 }

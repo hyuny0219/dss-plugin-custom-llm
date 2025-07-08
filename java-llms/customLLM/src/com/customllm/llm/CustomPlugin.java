@@ -113,15 +113,12 @@ public class CustomPlugin extends CustomLLMClient {
         }
         System.out.println("DEBUG: settings.config = " + settings.config);
 
-        // 안전한 null 체크로 커스텀 헤더 읽기
-        header1_key = (settings.config.has("header1_key") && !settings.config.get("header1_key").isJsonNull()) ? settings.config.get("header1_key").getAsString() : null;
-        header1_value = (settings.config.has("header1_value") && !settings.config.get("header1_value").isJsonNull()) ? settings.config.get("header1_value").getAsString() : null;
-        header2_key = (settings.config.has("header2_key") && !settings.config.get("header2_key").isJsonNull()) ? settings.config.get("header2_key").getAsString() : null;
-        header2_value = (settings.config.has("header2_value") && !settings.config.get("header2_value").isJsonNull()) ? settings.config.get("header2_value").getAsString() : null;
-        header3_key = (settings.config.has("header3_key") && !settings.config.get("header3_key").isJsonNull()) ? settings.config.get("header3_key").getAsString() : null;
-        header3_value = (settings.config.has("header3_value") && !settings.config.get("header3_value").isJsonNull()) ? settings.config.get("header3_value").getAsString() : null;
-        header4_key = (settings.config.has("header4_key") && !settings.config.get("header4_key").isJsonNull()) ? settings.config.get("header4_key").getAsString() : null;
-        header4_value = (settings.config.has("header4_value") && !settings.config.get("header4_value").isJsonNull()) ? settings.config.get("header4_value").getAsString() : null;
+        // 5개 헤더 value를 credential에서 읽기
+        String sendSystemNameValue = (settings.credential != null && settings.credential.has("send_system_name_value") && !settings.credential.get("send_system_name_value").isJsonNull()) ? settings.credential.get("send_system_name_value").getAsString() : null;
+        String userIdValue = (settings.credential != null && settings.credential.has("user_id_value") && !settings.credential.get("user_id_value").isJsonNull()) ? settings.credential.get("user_id_value").getAsString() : null;
+        String promptMsgIdValue = (settings.credential != null && settings.credential.has("prompt_msg_id_value") && !settings.credential.get("prompt_msg_id_value").isJsonNull()) ? settings.credential.get("prompt_msg_id_value").getAsString() : null;
+        String completionMsgIdValue = (settings.credential != null && settings.credential.has("completion_msg_id_value") && !settings.credential.get("completion_msg_id_value").isJsonNull()) ? settings.credential.get("completion_msg_id_value").getAsString() : null;
+        String xDepTicketValue = (settings.credential != null && settings.credential.has("x_dep_ticket_value") && !settings.credential.get("x_dep_ticket_value").isJsonNull()) ? settings.credential.get("x_dep_ticket_value").getAsString() : null;
 
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
@@ -350,20 +347,22 @@ public class CustomPlugin extends CustomLLMClient {
         return ret;
     }
 
-    // HTTP 요청에 사용자 정의 헤더를 추가하는 메서드
+    // HTTP 요청에 5개 고정 헤더를 추가하는 메서드
     private void setAdditionalHeadersInRequest(org.apache.http.client.methods.HttpRequestBase request) {
-        // headerN_key, headerN_value가 모두 있을 때만 헤더로 추가
-        if (header1_key != null && !header1_key.isEmpty() && header1_value != null && !header1_value.isEmpty()) {
-            request.addHeader(header1_key.trim(), header1_value.trim());
+        if (sendSystemNameValue != null && !sendSystemNameValue.isEmpty()) {
+            request.addHeader("Send-System-Name", sendSystemNameValue);
         }
-        if (header2_key != null && !header2_key.isEmpty() && header2_value != null && !header2_value.isEmpty()) {
-            request.addHeader(header2_key.trim(), header2_value.trim());
+        if (userIdValue != null && !userIdValue.isEmpty()) {
+            request.addHeader("User-id", userIdValue);
         }
-        if (header3_key != null && !header3_key.isEmpty() && header3_value != null && !header3_value.isEmpty()) {
-            request.addHeader(header3_key.trim(), header3_value.trim());
+        if (promptMsgIdValue != null && !promptMsgIdValue.isEmpty()) {
+            request.addHeader("Prompt-Msg-Id", promptMsgIdValue);
         }
-        if (header4_key != null && !header4_key.isEmpty() && header4_value != null && !header4_value.isEmpty()) {
-            request.addHeader(header4_key.trim(), header4_value.trim());
+        if (completionMsgIdValue != null && !completionMsgIdValue.isEmpty()) {
+            request.addHeader("Completion-Msg-Id", completionMsgIdValue);
+        }
+        if (xDepTicketValue != null && !xDepTicketValue.isEmpty()) {
+            request.addHeader("x-dep-ticket", xDepTicketValue);
         }
     }
 } 
