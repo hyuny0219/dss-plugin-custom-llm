@@ -127,5 +127,5 @@
             "mandatory": false
         }
     ],
-    "clientClass": "com.customllm.llm.UpstagePlugin"
+    "clientClass": "com.customllm.llm.CustomPlugin"
 } 
