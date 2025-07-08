@@ -138,8 +138,12 @@ public class CustomPlugin extends CustomLLMClient {
             protected HttpPost newPost(String path) {
                 HttpPost post = new HttpPost(path);
                 setAdditionalHeadersInRequest(post);
-                post.addHeader("Content-Type", "application/json");
                 post.addHeader("Authorization", access_token);
+                post.addHeader("Send-System-Name", sendSystemNameValue);
+                post.addHeader("User-id", userIdValue);
+                post.addHeader("Prompt-Msg-Id", promptMsgIdValue);
+                post.addHeader("Completion-Msg_Id", completionMsgIdValue);
+                post.addHeader("x-dep-ticket", xDepTicketValue);
                 return post;
             }
 
