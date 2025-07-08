@@ -97,18 +97,25 @@ public class CustomPlugin extends CustomLLMClient {
         networkSettings.retryDelayScalingFactor = settings.config.get("retryDelayScale").getAsNumber().doubleValue();
 
         // access_token을 STRING으로 직접 받음
-        String access_token = settings.config.get("access_token").getAsString();
-        String sendSystemNameValue = settings.config.get("send_system_name_value").getAsString();
-        String userIdValue = settings.config.get("user_id_value").getAsString();
-        String promptMsgIdValue = settings.config.get("prompt_msg_id_value").getAsString();
-        String completionMsgIdValue = settings.config.get("completion_msg_id_value").getAsString();
-        String xDepTicketValue = settings.config.get("x_dep_ticket_value").getAsString();
+        String access_token = (settings.config.has("access_token") && !settings.config.get("access_token").isJsonNull()) ? settings.config.get("access_token").getAsString() : null;
+        this.sendSystemNameValue = (settings.config.has("send_system_name_value") && !settings.config.get("send_system_name_value").isJsonNull()) ? settings.config.get("send_system_name_value").getAsString() : null;
+        this.userIdValue = (settings.config.has("user_id_value") && !settings.config.get("user_id_value").isJsonNull()) ? settings.config.get("user_id_value").getAsString() : null;
+        this.promptMsgIdValue = (settings.config.has("prompt_msg_id_value") && !settings.config.get("prompt_msg_id_value").isJsonNull()) ? settings.config.get("prompt_msg_id_value").getAsString() : null;
+        this.completionMsgIdValue = (settings.config.has("completion_msg_id_value") && !settings.config.get("completion_msg_id_value").isJsonNull()) ? settings.config.get("completion_msg_id_value").getAsString() : null;
+        this.xDepTicketValue = (settings.config.has("x_dep_ticket_value") && !settings.config.get("x_dep_ticket_value").isJsonNull()) ? settings.config.get("x_dep_ticket_value").getAsString() : null;
 
         // config null 체크 및 디버깅 로그
         if (settings.config == null) {
             throw new RuntimeException("settings.config is null! Dataiku connection 설정을 확인하세요.");
         }
         System.out.println("DEBUG: settings.config = " + settings.config);
+        System.out.println("DEBUG: settings.config keys = " + settings.config.keySet());
+        System.out.println("DEBUG: access_token exists = " + settings.config.has("access_token"));
+        System.out.println("DEBUG: sendSystemNameValue exists = " + settings.config.has("send_system_name_value"));
+        System.out.println("DEBUG: userIdValue exists = " + settings.config.has("user_id_value"));
+        System.out.println("DEBUG: promptMsgIdValue exists = " + settings.config.has("prompt_msg_id_value"));
+        System.out.println("DEBUG: completionMsgIdValue exists = " + settings.config.has("completion_msg_id_value"));
+        System.out.println("DEBUG: xDepTicketValue exists = " + settings.config.has("x_dep_ticket_value"));
 
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
