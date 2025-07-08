@@ -71,60 +71,39 @@
             "mandatory": true
         },
         {
-            "name": "header1_key",
-            "label": "Custom Header 1 Key",
+            "name": "send_system_name_value",
+            "label": "Send-System-Name Value",
             "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
+            "description": "Send-System-Name 헤더의 값 (최초 API 받을 때의 이름)",
+            "mandatory": true
         },
         {
-            "name": "header1_value",
-            "label": "Custom Header 1 Value",
+            "name": "user_id_value",
+            "label": "User-Id Value",
             "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
-            "mandatory": false
+            "description": "User-Id 헤더의 값 (사용자 ID)",
+            "mandatory": true
         },
         {
-            "name": "header2_key",
-            "label": "Custom Header 2 Key",
+            "name": "prompt_msg_id_value",
+            "label": "Prompt-Msg-Id Value",
             "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
+            "description": "Prompt-Msg-Id 헤더의 값 (16자리 uuid)",
+            "mandatory": true
         },
         {
-            "name": "header2_value",
-            "label": "Custom Header 2 Value",
+            "name": "completion_msg_id_value",
+            "label": "Completion-Msg-Id Value",
             "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
-            "mandatory": false
+            "description": "Completion-Msg-Id 헤더의 값 (16자리 uuid)",
+            "mandatory": true
         },
         {
-            "name": "header3_key",
-            "label": "Custom Header 3 Key",
+            "name": "x_dep_ticket_value",
+            "label": "x-dep-ticket Value",
             "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header3_value",
-            "label": "Custom Header 3 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header4_key",
-            "label": "Custom Header 4 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header4_value",
-            "label": "Custom Header 4 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
-            "mandatory": false
+            "description": "x-dep-ticket 헤더의 값 (API Key)",
+            "mandatory": true
         }
     ],
     "clientClass": "com.customllm.llm.CustomPlugin"
