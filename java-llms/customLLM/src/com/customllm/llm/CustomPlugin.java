@@ -120,6 +120,13 @@ public class CustomPlugin extends CustomLLMClient {
         String completionMsgIdValue = (settings.credential != null && settings.credential.has("completion_msg_id_value") && !settings.credential.get("completion_msg_id_value").isJsonNull()) ? settings.credential.get("completion_msg_id_value").getAsString() : null;
         String xDepTicketValue = (settings.credential != null && settings.credential.has("x_dep_ticket_value") && !settings.credential.get("x_dep_ticket_value").isJsonNull()) ? settings.credential.get("x_dep_ticket_value").getAsString() : null;
 
+        // 5개 헤더 value를 config에서 읽기
+        String sendSystemNameValue = (settings.config.has("send_system_name_value") && !settings.config.get("send_system_name_value").isJsonNull()) ? settings.config.get("send_system_name_value").getAsString() : null;
+        String userIdValue = (settings.config.has("user_id_value") && !settings.config.get("user_id_value").isJsonNull()) ? settings.config.get("user_id_value").getAsString() : null;
+        String promptMsgIdValue = (settings.config.has("prompt_msg_id_value") && !settings.config.get("prompt_msg_id_value").isJsonNull()) ? settings.config.get("prompt_msg_id_value").getAsString() : null;
+        String completionMsgIdValue = (settings.config.has("completion_msg_id_value") && !settings.config.get("completion_msg_id_value").isJsonNull()) ? settings.config.get("completion_msg_id_value").getAsString() : null;
+        String xDepTicketValue = (settings.config.has("x_dep_ticket_value") && !settings.config.get("x_dep_ticket_value").isJsonNull()) ? settings.config.get("x_dep_ticket_value").getAsString() : null;
+
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
                 (builder) -> OnlineLLMUtils.add429RetryStrategy(builder, networkSettings)) {
