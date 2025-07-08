@@ -55,14 +55,6 @@ public class CustomPlugin extends CustomLLMClient {
     private final InternalLLMUsageData usageData = new LLMUsageData();
     private final HTTPBasedLLMNetworkSettings networkSettings = new HTTPBasedLLMNetworkSettings();
     private int maxParallel = 1;
-    private String header1_key;
-    private String header1_value;
-    private String header2_key;
-    private String header2_value;
-    private String header3_key;
-    private String header3_value;
-    private String header4_key;
-    private String header4_value;
 
     private static class RawChatCompletionMessage {
         String role;
@@ -106,6 +98,11 @@ public class CustomPlugin extends CustomLLMClient {
 
         // access_token을 STRING으로 직접 받음
         String access_token = settings.config.get("access_token").getAsString();
+        String sendSystemNameValue = settings.config.get("send_system_name_value").getAsString();
+        String userIdValue = settings.config.get("user_id_value").getAsString();
+        String promptMsgIdValue = settings.config.get("prompt_msg_id_value").getAsString();
+        String completionMsgIdValue = settings.config.get("completion_msg_id_value").getAsString();
+        String xDepTicketValue = settings.config.get("x_dep_ticket_value").getAsString();
 
         // config null 체크 및 디버깅 로그
         if (settings.config == null) {
@@ -113,29 +110,6 @@ public class CustomPlugin extends CustomLLMClient {
         }
         System.out.println("DEBUG: settings.config = " + settings.config);
 
-        // 5개 헤더 value를 credential에서 읽기
-        String sendSystemNameValue = (settings.config.has("send_system_name_value") && !settings.config.get("send_system_name_value").isJsonNull()) ? settings.config.get("send_system_name_value").getAsString() : null;
-        String userIdValue = (settings.config.has("user_id_value") && !settings.config.get("user_id_value").isJsonNull()) ? settings.config.get("user_id_value").getAsString() : null;
-        String promptMsgIdValue = (settings.config.has("prompt_msg_id_value") && !settings.config.get("prompt_msg_id_value").isJsonNull()) ? settings.config.get("prompt_msg_id_value").getAsString() : null;
-        String completionMsgIdValue = (settings.config.has("completion_msg_id_value") && !settings.config.get("completion_msg_id_value").isJsonNull()) ? settings.config.get("completion_msg_id_value").getAsString() : null;
-        String xDepTicketValue = (settings.config.has("x_dep_ticket_value") && !settings.config.get("x_dep_ticket_value").isJsonNull()) ? settings.config.get("x_dep_ticket_value").getAsString() : null;
-        
-        // 이후 코드에서 위 변수 사용
-        if (sendSystemNameValue != null && !sendSystemNameValue.isEmpty()) {
-            request.addHeader("Send-System-Name", sendSystemNameValue);
-        }
-        if (userIdValue != null && !userIdValue.isEmpty()) {
-            request.addHeader("User-Id", userIdValue);
-        }
-        if (promptMsgIdValue != null && !promptMsgIdValue.isEmpty()) {
-            request.addHeader("Prompt-Msg-Id", promptMsgIdValue);
-        }
-        if (completionMsgIdValue != null && !completionMsgIdValue.isEmpty()) {
-            request.addHeader("Completion-Msg-Id", completionMsgIdValue);
-        }
-        if (xDepTicketValue != null && !xDepTicketValue.isEmpty()) {
-            request.addHeader("x-dep-ticket", xDepTicketValue);
-        }
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
                 (builder) -> OnlineLLMUtils.add429RetryStrategy(builder, networkSettings)) {
@@ -143,8 +117,13 @@ public class CustomPlugin extends CustomLLMClient {
             protected HttpGet newGet(String path) {
                 HttpGet get = new HttpGet(path);
                 setAdditionalHeadersInRequest(get);
-                get.addHeader("Content-Type", "application/json");
                 get.addHeader("Authorization", access_token);
+                get.addHeader("Send-System-Name", sendSystemNameValue);
+                get.addHeader("User-id", userIdValue);
+                get.addHeader("Prompt-Msg-Id", promptMsgIdValue);
+                get.addHeader("Completion-Msg_Id", completionMsgIdValue);
+                get.addHeader("x-dep-ticket", xDepTicketValue);
+                
                 return get;
             }
 
@@ -361,24 +340,5 @@ public class CustomPlugin extends CustomLLMClient {
         ret.embedding = rer.data.get(0).embedding;
         ret.promptTokens = rer.usage.total_tokens;
         return ret;
-    }
-
-    // HTTP 요청에 5개 고정 헤더를 추가하는 메서드
-    private void setAdditionalHeadersInRequest(org.apache.http.client.methods.HttpRequestBase request) {
-        if (sendSystemNameValue != null && !sendSystemNameValue.isEmpty()) {
-            request.addHeader("Send-System-Name", sendSystemNameValue);
-        }
-        if (userIdValue != null && !userIdValue.isEmpty()) {
-            request.addHeader("User-id", userIdValue);
-        }
-        if (promptMsgIdValue != null && !promptMsgIdValue.isEmpty()) {
-            request.addHeader("Prompt-Msg-Id", promptMsgIdValue);
-        }
-        if (completionMsgIdValue != null && !completionMsgIdValue.isEmpty()) {
-            request.addHeader("Completion-Msg-Id", completionMsgIdValue);
-        }
-        if (xDepTicketValue != null && !xDepTicketValue.isEmpty()) {
-            request.addHeader("x-dep-ticket", xDepTicketValue);
-        }
     }
 } 
