@@ -98,11 +98,11 @@ public class CustomPlugin extends CustomLLMClient {
 
         // access_token을 STRING으로 직접 받음
         String access_token = (settings.config.has("access_token") && !settings.config.get("access_token").isJsonNull()) ? settings.config.get("access_token").getAsString() : null;
-        this.sendSystemNameValue = (settings.config.has("send_system_name_value") && !settings.config.get("send_system_name_value").isJsonNull()) ? settings.config.get("send_system_name_value").getAsString() : null;
-        this.userIdValue = (settings.config.has("user_id_value") && !settings.config.get("user_id_value").isJsonNull()) ? settings.config.get("user_id_value").getAsString() : null;
-        this.promptMsgIdValue = (settings.config.has("prompt_msg_id_value") && !settings.config.get("prompt_msg_id_value").isJsonNull()) ? settings.config.get("prompt_msg_id_value").getAsString() : null;
-        this.completionMsgIdValue = (settings.config.has("completion_msg_id_value") && !settings.config.get("completion_msg_id_value").isJsonNull()) ? settings.config.get("completion_msg_id_value").getAsString() : null;
-        this.xDepTicketValue = (settings.config.has("x_dep_ticket_value") && !settings.config.get("x_dep_ticket_value").isJsonNull()) ? settings.config.get("x_dep_ticket_value").getAsString() : null;
+        String sendSystemNameValue = (settings.config.has("send_system_name_value") && !settings.config.get("send_system_name_value").isJsonNull()) ? settings.config.get("send_system_name_value").getAsString() : null;
+        String userIdValue = (settings.config.has("user_id_value") && !settings.config.get("user_id_value").isJsonNull()) ? settings.config.get("user_id_value").getAsString() : null;
+        String promptMsgIdValue = (settings.config.has("prompt_msg_id_value") && !settings.config.get("prompt_msg_id_value").isJsonNull()) ? settings.config.get("prompt_msg_id_value").getAsString() : null;
+        String completionMsgIdValue = (settings.config.has("completion_msg_id_value") && !settings.config.get("completion_msg_id_value").isJsonNull()) ? settings.config.get("completion_msg_id_value").getAsString() : null;
+        String xDepTicketValue = (settings.config.has("x_dep_ticket_value") && !settings.config.get("x_dep_ticket_value").isJsonNull()) ? settings.config.get("x_dep_ticket_value").getAsString() : null;
 
         // config null 체크 및 디버깅 로그
         if (settings.config == null) {
