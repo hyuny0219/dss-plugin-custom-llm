@@ -1,0 +1,138 @@
+{
+    "id": "custom-llm-chat",
+    "meta": {
+        "label": "Custom LLM Connector"
+    },
+    "params": [
+        {
+            "name": "access_token",
+            "label": "Access Token",
+            "type": "STRING",
+            "description": "API access token (Bearer ...)",
+            "mandatory": true
+        },
+        {
+            "name": "endpoint_url",
+            "label": "Endpoint URL",
+            "type": "STRING",
+            "defaultValue": "",
+            "description": "Base API endpoint URL (embeddings endpoint will be derived from this)",
+            "mandatory": true
+        },
+        {
+            "name": "model",
+            "label": "Model Key",
+            "type": "STRING",
+            "description": "Model identifier for CustomLLM API",
+            "defaultValue": "",
+            "mandatory": true
+        },
+        {
+            "name": "inputType",
+            "label": "Input Type",
+            "description": "Input Type for embedding model only",
+            "type": "SELECT",
+            "selectChoices": [
+                { "value": "query", "label": "query"},
+                { "value": "passage", "label": "passage"}
+            ],
+            "defaultValue": "query",
+            "mandatory": false
+        },
+        {
+            "name": "maxParallelism",
+            "label": "Maximum Parallelism",
+            "type": "INT",
+            "defaultValue": 8,
+            "mandatory": true
+        },
+        {
+            "name": "networkTimeout",
+            "label": "Network Timeout",
+            "type": "INT",
+            "description": "(in milliseconds)",
+            "defaultValue": 60000,
+            "mandatory": true
+        },
+        {
+            "name": "maxRetries",
+            "label": "Max Retries",
+            "type": "INT",
+            "defaultValue": 3,
+            "mandatory": true
+        },
+        {
+            "name": "firstRetryDelay",
+            "label": "First Retry Delay",
+            "type": "INT",
+            "defaultValue": 3000,
+            "description": "(in milliseconds)",
+            "mandatory": true
+        },
+        {
+            "name": "retryDelayScale",
+            "label": "Retry Delay Scale Factor",
+            "type": "INT",
+            "defaultValue": 2,
+            "description": "(multiplier per retry)",
+            "mandatory": true
+        },
+        {
+            "name": "header1_key",
+            "label": "Custom Header 1 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional)",
+            "mandatory": false
+        },
+        {
+            "name": "header1_value",
+            "label": "Custom Header 1 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional)",
+            "mandatory": false
+        },
+        {
+            "name": "header2_key",
+            "label": "Custom Header 2 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional)",
+            "mandatory": false
+        },
+        {
+            "name": "header2_value",
+            "label": "Custom Header 2 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional)",
+            "mandatory": false
+        },
+        {
+            "name": "header3_key",
+            "label": "Custom Header 3 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional)",
+            "mandatory": false
+        },
+        {
+            "name": "header3_value",
+            "label": "Custom Header 3 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional)",
+            "mandatory": false
+        },
+        {
+            "name": "header4_key",
+            "label": "Custom Header 4 Key",
+            "type": "STRING",
+            "description": "Custom HTTP header name (optional)",
+            "mandatory": false
+        },
+        {
+            "name": "header4_value",
+            "label": "Custom Header 4 Value",
+            "type": "STRING",
+            "description": "Custom HTTP header value (optional)",
+            "mandatory": false
+        }
+    ],
+    "clientClass": "com.customllm.llm.UpstagePlugin"
+} 

@@ -1,7 +1,7 @@
 {
     "meta" : {
-        "label": "Upstage API Keys",
-        "description": "Define a preset that DSS users can use to authenticate themselves on the Upstage API endpoint. The plugin will work with per-user credentials.",
+        "label": "Custom API Keys",
+        "description": "Define a preset that DSS users can use to authenticate themselves on the Custom API endpoint. The plugin will work with per-user credentials.",
         "icon": "icon-cloud"
     },
     "defaultDefinableInline": true,
@@ -17,7 +17,7 @@
             "credentialRequestSettings": {
                 "type": "SINGLE_FIELD"
             },
-            "description": "Upstage API authentication key",
+            "description": "Custom API authentication key",
             "mandatory": true
         }
     ]

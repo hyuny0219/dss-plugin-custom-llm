@@ -38,10 +38,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UpstagePlugin extends CustomLLMClient {
-    private static final DKULogger logger = DKULogger.getLogger("dku.llm.customplugin.upstage.solar");
+public class CustomPlugin extends CustomLLMClient {
+    private static final DKULogger logger = DKULogger.getLogger("dku.llm.customplugin.custom.llm");
 
-    public UpstagePlugin() {
+    public CustomPlugin() {
     }
 
     private String endpointUrl;
@@ -51,6 +51,14 @@ public class UpstagePlugin extends CustomLLMClient {
     private final InternalLLMUsageData usageData = new LLMUsageData();
     private final HTTPBasedLLMNetworkSettings networkSettings = new HTTPBasedLLMNetworkSettings();
     private int maxParallel = 1;
+    private String header1_key;
+    private String header1_value;
+    private String header2_key;
+    private String header2_value;
+    private String header3_key;
+    private String header3_value;
+    private String header4_key;
+    private String header4_value;
 
     private static class RawChatCompletionMessage {
         String role;
@@ -92,7 +100,18 @@ public class UpstagePlugin extends CustomLLMClient {
         networkSettings.initialRetryDelayMS = settings.config.get("firstRetryDelay").getAsNumber().longValue();
         networkSettings.retryDelayScalingFactor = settings.config.get("retryDelayScale").getAsNumber().doubleValue();
 
-        String access_token = "Bearer " + settings.config.get("apikeys").getAsJsonObject().get("api_key").getAsString();
+        // access_token을 STRING으로 직접 받음
+        String access_token = settings.config.get("access_token").getAsString();
+
+        // 사용자 정의 헤더 키/값 읽기
+        header1_key = settings.config.has("header1_key") ? settings.config.get("header1_key").getAsString() : null;
+        header1_value = settings.config.has("header1_value") ? settings.config.get("header1_value").getAsString() : null;
+        header2_key = settings.config.has("header2_key") ? settings.config.get("header2_key").getAsString() : null;
+        header2_value = settings.config.has("header2_value") ? settings.config.get("header2_value").getAsString() : null;
+        header3_key = settings.config.has("header3_key") ? settings.config.get("header3_key").getAsString() : null;
+        header3_value = settings.config.has("header3_value") ? settings.config.get("header3_value").getAsString() : null;
+        header4_key = settings.config.has("header4_key") ? settings.config.get("header4_key").getAsString() : null;
+        header4_value = settings.config.has("header4_value") ? settings.config.get("header4_value").getAsString() : null;
 
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
@@ -235,7 +254,7 @@ public class UpstagePlugin extends CustomLLMClient {
         addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences);
         ob.with("stream", true);
 
-        logger.info("Upstage chat completion: " + JSON.pretty(ob.get()));
+        logger.info("Custom chat completion: " + JSON.pretty(ob.get()));
 
         EntityAndRequest ear = client.postJSONToStreamAndRequest(endpointUrl, networkSettings.queryTimeoutMS, ob.get());
         SSEDecoder decoder = new SSEDecoder(ear.entity.getContent());
@@ -319,5 +338,22 @@ public class UpstagePlugin extends CustomLLMClient {
         ret.embedding = rer.data.get(0).embedding;
         ret.promptTokens = rer.usage.total_tokens;
         return ret;
+    }
+
+    // HTTP 요청에 사용자 정의 헤더를 추가하는 메서드
+    private void setAdditionalHeadersInRequest(org.apache.http.client.methods.HttpRequestBase request) {
+        // headerN_key, headerN_value가 모두 있을 때만 헤더로 추가
+        if (header1_key != null && !header1_key.isEmpty() && header1_value != null && !header1_value.isEmpty()) {
+            request.addHeader(header1_key.trim(), header1_value.trim());
+        }
+        if (header2_key != null && !header2_key.isEmpty() && header2_value != null && !header2_value.isEmpty()) {
+            request.addHeader(header2_key.trim(), header2_value.trim());
+        }
+        if (header3_key != null && !header3_key.isEmpty() && header3_value != null && !header3_value.isEmpty()) {
+            request.addHeader(header3_key.trim(), header3_value.trim());
+        }
+        if (header4_key != null && !header4_key.isEmpty() && header4_value != null && !header4_value.isEmpty()) {
+            request.addHeader(header4_key.trim(), header4_value.trim());
+        }
     }
 } 

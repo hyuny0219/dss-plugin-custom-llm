@@ -10,7 +10,6 @@
 
     <target name="jar">
         <path id="lib.path.id">
-            <fileset dir="${env.DKUINSTALLDIR}/lib/ivy/backend-run" />
             <fileset dir="${env.DKUINSTALLDIR}/lib/ivy/common-run" />
             <fileset dir="${env.DKUINSTALLDIR}/lib/shadelib" />
             <fileset file="${env.DKUINSTALLDIR}/dist/dataiku-core.jar" />
@@ -24,9 +23,9 @@
         <javac debug="true" destdir="${build.dir}" source="11" target="11" classpathref="lib.path.id" encoding="utf-8" includeantruntime="false">
             <compilerarg value="-Xlint:all" />
             <src>
-                <pathelement location="java-llms/upstageLLM" />
+                <pathelement location="java-llms/customLLM" />
             </src>
         </javac>
-        <jar destfile="${dist.dir}/UpstagePlugin.jar" basedir="${build.dir}" />
+        <jar destfile="${dist.dir}/CustomPlugin.jar" basedir="${build.dir}" />
     </target>
 </project>

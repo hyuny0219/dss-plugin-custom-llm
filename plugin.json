@@ -1,16 +1,16 @@
 {
-    "id": "upstage-solar-pro-llm",
+    "id": "custom-llm",
     "version": "0.1.0",
     "meta": {
-        "label": "Upstage Solar Pro LLM",
-        "description": "Connect to Upstage Solar Pro LLM API",
-        "author": "Upstage",
-        "icon": "icon-cloud",
+        "label": "Custom LLM",
+        "description": "Connect to Custom LLM API",
+        "author": "AzwellAI",
+        "icon": "icon-adn",
         "tags": [
             "Generative AI",
-            "NLP"
+            "LLM"
         ],
-        "url": "https://upstage.ai",
+        "url": "https://www.azwell.ai/",
         "licenseInfo": "Apache Software License",
         "supportLevel": "NOT_SUPPORTED"
     }
