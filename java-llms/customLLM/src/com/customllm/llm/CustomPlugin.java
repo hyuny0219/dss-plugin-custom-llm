@@ -144,6 +144,18 @@ public class CustomPlugin extends CustomLLMClient {
                 post.addHeader("Prompt-Msg-Id", promptMsgIdValue);
                 post.addHeader("Completion-Msg_Id", completionMsgIdValue);
                 post.addHeader("x-dep-ticket", xDepTicketValue);
+                
+                // 헤더 로깅 추가
+                logger.info("=== HTTP Request Headers ===");
+                logger.info("URL: " + path);
+                logger.info("Authorization: " + access_token);
+                logger.info("Send-System-Name: " + sendSystemNameValue);
+                logger.info("User-id: " + userIdValue);
+                logger.info("Prompt-Msg-Id: " + promptMsgIdValue);
+                logger.info("Completion-Msg_Id: " + completionMsgIdValue);
+                logger.info("x-dep-ticket: " + xDepTicketValue);
+                logger.info("==========================");
+                
                 return post;
             }
 
