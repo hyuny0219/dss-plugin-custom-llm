@@ -104,19 +104,6 @@ public class CustomPlugin extends CustomLLMClient {
         String completionMsgIdValue = settings.config.get("apikeys").getAsJsonObject().get("completion_msg_id_value").getAsString();
         String xDepTicketValue = settings.config.get("apikeys").getAsJsonObject().get("x_dep_ticket_value").getAsString();
 
-        // config null 체크 및 디버깅 로그
-        if (settings.config == null) {
-            throw new RuntimeException("settings.config is null! Dataiku connection 설정을 확인하세요.");
-        }
-        System.out.println("DEBUG: settings.config = " + settings.config);
-        System.out.println("DEBUG: settings.config keys = " + settings.config.keySet());
-        System.out.println("DEBUG: access_token exists = " + settings.config.has("access_token"));
-        System.out.println("DEBUG: sendSystemNameValue exists = " + settings.config.has("send_system_name_value"));
-        System.out.println("DEBUG: userIdValue exists = " + settings.config.has("user_id_value"));
-        System.out.println("DEBUG: promptMsgIdValue exists = " + settings.config.has("prompt_msg_id_value"));
-        System.out.println("DEBUG: completionMsgIdValue exists = " + settings.config.has("completion_msg_id_value"));
-        System.out.println("DEBUG: xDepTicketValue exists = " + settings.config.has("x_dep_ticket_value"));
-
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
                 (builder) -> OnlineLLMUtils.add429RetryStrategy(builder, networkSettings)) {
@@ -144,17 +131,6 @@ public class CustomPlugin extends CustomLLMClient {
                 post.addHeader("Prompt-Msg-Id", promptMsgIdValue);
                 post.addHeader("Completion-Msg_Id", completionMsgIdValue);
                 post.addHeader("x-dep-ticket", xDepTicketValue);
-                
-                // 실제 HTTP 요청 객체의 모든 헤더 로깅
-                logger.info("=== ACTUAL HTTP REQUEST HEADERS ===");
-                logger.info("Method: " + post.getMethod());
-                logger.info("URI: " + post.getURI());
-                
-                org.apache.http.Header[] headers = post.getAllHeaders();
-                for (org.apache.http.Header header : headers) {
-                    logger.info("Header: " + header.getName() + " = " + header.getValue());
-                }
-                logger.info("===================================");
                 
                 return post;
             }
@@ -230,21 +206,6 @@ public class CustomPlugin extends CustomLLMClient {
 
         addMessagesInObject(ob, messages);
         addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences);
-
-        logger.info("[DEBUG] Raw Chat completion request: " + JSON.pretty(ob.get()));
-        
-        // Request 전송 전 Header 확인 로깅 추가
-        logger.info("=== REQUEST SENDING PREPARATION ===");
-        logger.info("Endpoint URL: " + endpointUrl);
-        logger.info("Model: " + model);
-        logger.info("Custom Headers will be included:");
-        logger.info("  - Authorization: " + (access_token != null ? "SET" : "NULL"));
-        logger.info("  - Send-System-Name: " + (sendSystemNameValue != null ? "SET" : "NULL"));
-        logger.info("  - User-id: " + (userIdValue != null ? "SET" : "NULL"));
-        logger.info("  - Prompt-Msg-Id: " + (promptMsgIdValue != null ? "SET" : "NULL"));
-        logger.info("  - Completion-Msg_Id: " + (completionMsgIdValue != null ? "SET" : "NULL"));
-        logger.info("  - x-dep-ticket: " + (xDepTicketValue != null ? "SET" : "NULL"));
-        logger.info("=====================================");
 
         RawChatCompletionResponse rcr = client.postObjectToJSON(endpointUrl, networkSettings.queryTimeoutMS,
                 RawChatCompletionResponse.class, ob.get());
