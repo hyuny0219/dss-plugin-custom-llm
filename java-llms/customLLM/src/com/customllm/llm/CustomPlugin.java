@@ -145,16 +145,16 @@ public class CustomPlugin extends CustomLLMClient {
                 post.addHeader("Completion-Msg_Id", completionMsgIdValue);
                 post.addHeader("x-dep-ticket", xDepTicketValue);
                 
-                // 헤더 로깅 추가
-                logger.info("=== HTTP Request Headers ===");
-                logger.info("URL: " + path);
-                logger.info("Authorization: " + access_token);
-                logger.info("Send-System-Name: " + sendSystemNameValue);
-                logger.info("User-id: " + userIdValue);
-                logger.info("Prompt-Msg-Id: " + promptMsgIdValue);
-                logger.info("Completion-Msg_Id: " + completionMsgIdValue);
-                logger.info("x-dep-ticket: " + xDepTicketValue);
-                logger.info("==========================");
+                // 실제 HTTP 요청 객체의 모든 헤더 로깅
+                logger.info("=== ACTUAL HTTP REQUEST HEADERS ===");
+                logger.info("Method: " + post.getMethod());
+                logger.info("URI: " + post.getURI());
+                
+                org.apache.http.Header[] headers = post.getAllHeaders();
+                for (org.apache.http.Header header : headers) {
+                    logger.info("Header: " + header.getName() + " = " + header.getValue());
+                }
+                logger.info("===================================");
                 
                 return post;
             }
@@ -232,6 +232,19 @@ public class CustomPlugin extends CustomLLMClient {
         addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences);
 
         logger.info("[DEBUG] Raw Chat completion request: " + JSON.pretty(ob.get()));
+        
+        // Request 전송 전 Header 확인 로깅 추가
+        logger.info("=== REQUEST SENDING PREPARATION ===");
+        logger.info("Endpoint URL: " + endpointUrl);
+        logger.info("Model: " + model);
+        logger.info("Custom Headers will be included:");
+        logger.info("  - Authorization: " + (access_token != null ? "SET" : "NULL"));
+        logger.info("  - Send-System-Name: " + (sendSystemNameValue != null ? "SET" : "NULL"));
+        logger.info("  - User-id: " + (userIdValue != null ? "SET" : "NULL"));
+        logger.info("  - Prompt-Msg-Id: " + (promptMsgIdValue != null ? "SET" : "NULL"));
+        logger.info("  - Completion-Msg_Id: " + (completionMsgIdValue != null ? "SET" : "NULL"));
+        logger.info("  - x-dep-ticket: " + (xDepTicketValue != null ? "SET" : "NULL"));
+        logger.info("=====================================");
 
         RawChatCompletionResponse rcr = client.postObjectToJSON(endpointUrl, networkSettings.queryTimeoutMS,
                 RawChatCompletionResponse.class, ob.get());
