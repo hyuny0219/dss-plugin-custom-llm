@@ -20,7 +20,7 @@
         </path>
         <mkdir dir="${build.dir}" />
         <mkdir dir="${dist.dir}" />
-        <javac debug="true" destdir="${build.dir}" source="11" target="11" classpathref="lib.path.id" encoding="utf-8" includeantruntime="false">
+        <javac debug="true" destdir="${build.dir}" source="17" target="17" classpathref="lib.path.id" encoding="utf-8" includeantruntime="false">
             <compilerarg value="-Xlint:all" />
             <src>
                 <pathelement location="java-llms/customLLM" />
