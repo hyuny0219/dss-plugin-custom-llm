@@ -96,13 +96,16 @@ public class CustomPlugin extends CustomLLMClient {
         networkSettings.initialRetryDelayMS = settings.config.get("firstRetryDelay").getAsNumber().longValue();
         networkSettings.retryDelayScalingFactor = settings.config.get("retryDelayScale").getAsNumber().doubleValue();
 
-        // access_token을 STRING으로 직접 받음
+        // API Key는 별도로 받음
         String access_token = settings.config.get("apikeys").getAsJsonObject().get("api_key").getAsString();
-        String sendSystemNameValue = settings.config.get("apikeys").getAsJsonObject().get("send_system_name_value").getAsString();
-        String userIdValue = settings.config.get("apikeys").getAsJsonObject().get("user_id_value").getAsString();
-        String promptMsgIdValue = settings.config.get("apikeys").getAsJsonObject().get("prompt_msg_id_value").getAsString();
-        String completionMsgIdValue = settings.config.get("apikeys").getAsJsonObject().get("completion_msg_id_value").getAsString();
-        String xDepTicketValue = settings.config.get("apikeys").getAsJsonObject().get("x_dep_ticket_value").getAsString();
+        
+        // Custom Headers는 그룹으로 받음
+        JsonObject customHeaders = settings.config.get("apikeys").getAsJsonObject().get("custom_headers").getAsJsonObject();
+        String sendSystemNameValue = customHeaders.get("send_system_name_value").getAsString();
+        String userIdValue = customHeaders.get("user_id_value").getAsString();
+        String promptMsgIdValue = customHeaders.get("prompt_msg_id_value").getAsString();
+        String completionMsgIdValue = customHeaders.get("completion_msg_id_value").getAsString();
+        String xDepTicketValue = customHeaders.get("x_dep_ticket_value").getAsString();
 
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
