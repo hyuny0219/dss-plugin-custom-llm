@@ -70,12 +70,11 @@ custom-llm/
 - UUID 형식의 Msg-Id 값들은 16자리 형식을 준수해야 합니다.
 
 ## 예시 스크린샷
-(아래 이미지는 실제 환경에 맞게 교체/추가하세요)
 
 ![api key preset screenshot](assets/api-key-preset-screenshot.png)
 ![credentials screenshot](assets/credentials-screenshot.png)
 ![new custom connection screenshot](assets/new-custom-connection-screenshot.png)
-![custom custom connection screenshot](assets/custom-custom-connection.png)
+![custom custom connection screenshot](assets/custom-connection.png)
 
 ## 변경 이력
 - Custom LLM 일반화
