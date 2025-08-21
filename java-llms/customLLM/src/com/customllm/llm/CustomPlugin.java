@@ -55,22 +55,39 @@ public class CustomPlugin extends CustomLLMClient {
     private final InternalLLMUsageData usageData = new LLMUsageData();
     private final HTTPBasedLLMNetworkSettings networkSettings = new HTTPBasedLLMNetworkSettings();
     private int maxParallel = 1;
-    private String header1_key;
-    private String header1_value;
-    private String header2_key;
-    private String header2_value;
-    private String header3_key;
-    private String header3_value;
-    private String header4_key;
-    private String header4_value;
+
+    // OpenAI 호환 Tool calling을 위한 데이터 구조들
+    private static class Tool {
+        String type;
+        Function function;
+    }
+
+    private static class Function {
+        String name;
+        String description;
+        JsonObject parameters;
+    }
+
+    private static class ToolCall {
+        String id;
+        String type;
+        FunctionCall function;
+    }
+
+    private static class FunctionCall {
+        String name;
+        String arguments;
+    }
 
     private static class RawChatCompletionMessage {
         String role;
         String content;
+        List<ToolCall> tool_calls;  // OpenAI 호환 tool_calls 필드
     }
 
     private static class RawChatCompletionChoice {
         RawChatCompletionMessage message;
+        String finish_reason;  // OpenAI 호환 finish_reason 필드
     }
 
     private static class RawUsageResponse {
@@ -87,7 +104,6 @@ public class CustomPlugin extends CustomLLMClient {
     private static class EmbeddingResponse {
         List<EmbeddingResult> data = new ArrayList<>();
         RawUsageResponse usage;
-
     }
 
     private static class EmbeddingResult {
@@ -105,23 +121,12 @@ public class CustomPlugin extends CustomLLMClient {
         networkSettings.retryDelayScalingFactor = settings.config.get("retryDelayScale").getAsNumber().doubleValue();
 
         // access_token을 STRING으로 직접 받음
-        String access_token = settings.config.get("access_token").getAsString();
-
-        // config null 체크 및 디버깅 로그
-        if (settings.config == null) {
-            throw new RuntimeException("settings.config is null! Dataiku connection 설정을 확인하세요.");
-        }
-        System.out.println("DEBUG: settings.config = " + settings.config);
-
-        // 안전한 null 체크로 커스텀 헤더 읽기
-        header1_key = (settings.config.has("header1_key") && !settings.config.get("header1_key").isJsonNull()) ? settings.config.get("header1_key").getAsString() : null;
-        header1_value = (settings.config.has("header1_value") && !settings.config.get("header1_value").isJsonNull()) ? settings.config.get("header1_value").getAsString() : null;
-        header2_key = (settings.config.has("header2_key") && !settings.config.get("header2_key").isJsonNull()) ? settings.config.get("header2_key").getAsString() : null;
-        header2_value = (settings.config.has("header2_value") && !settings.config.get("header2_value").isJsonNull()) ? settings.config.get("header2_value").getAsString() : null;
-        header3_key = (settings.config.has("header3_key") && !settings.config.get("header3_key").isJsonNull()) ? settings.config.get("header3_key").getAsString() : null;
-        header3_value = (settings.config.has("header3_value") && !settings.config.get("header3_value").isJsonNull()) ? settings.config.get("header3_value").getAsString() : null;
-        header4_key = (settings.config.has("header4_key") && !settings.config.get("header4_key").isJsonNull()) ? settings.config.get("header4_key").getAsString() : null;
-        header4_value = (settings.config.has("header4_value") && !settings.config.get("header4_value").isJsonNull()) ? settings.config.get("header4_value").getAsString() : null;
+        String access_token = settings.config.get("apikeys").getAsJsonObject().get("api_key").getAsString();
+        String sendSystemNameValue = settings.config.get("apikeys").getAsJsonObject().get("send_system_name_value").getAsString();
+        String userIdValue = settings.config.get("apikeys").getAsJsonObject().get("user_id_value").getAsString();
+        String promptMsgIdValue = settings.config.get("apikeys").getAsJsonObject().get("prompt_msg_id_value").getAsString();
+        String completionMsgIdValue = settings.config.get("apikeys").getAsJsonObject().get("completion_msg_id_value").getAsString();
+        String xDepTicketValue = settings.config.get("apikeys").getAsJsonObject().get("x_dep_ticket_value").getAsString();
 
         client = new ExternalJSONAPIClient(endpointUrl, null, true, ApplicationConfigurator.getProxySettings(),
                 OnlineLLMUtils.getLLMResponseRetryStrategy(networkSettings),
@@ -130,8 +135,13 @@ public class CustomPlugin extends CustomLLMClient {
             protected HttpGet newGet(String path) {
                 HttpGet get = new HttpGet(path);
                 setAdditionalHeadersInRequest(get);
-                get.addHeader("Content-Type", "application/json");
                 get.addHeader("Authorization", access_token);
+                get.addHeader("Send-System-Name", sendSystemNameValue);
+                get.addHeader("User-id", userIdValue);
+                get.addHeader("Prompt-Msg-Id", promptMsgIdValue);
+                get.addHeader("Completion-Msg_Id", completionMsgIdValue);
+                get.addHeader("x-dep-ticket", xDepTicketValue);
+                
                 return get;
             }
 
@@ -139,8 +149,13 @@ public class CustomPlugin extends CustomLLMClient {
             protected HttpPost newPost(String path) {
                 HttpPost post = new HttpPost(path);
                 setAdditionalHeadersInRequest(post);
-                post.addHeader("Content-Type", "application/json");
                 post.addHeader("Authorization", access_token);
+                post.addHeader("Send-System-Name", sendSystemNameValue);
+                post.addHeader("User-id", userIdValue);
+                post.addHeader("Prompt-Msg-Id", promptMsgIdValue);
+                post.addHeader("Completion-Msg_Id", completionMsgIdValue);
+                post.addHeader("x-dep-ticket", xDepTicketValue);
+                
                 return post;
             }
 
@@ -166,8 +181,12 @@ public class CustomPlugin extends CustomLLMClient {
         List<SimpleCompletionResponse> ret = new ArrayList<>();
         for (CompletionQuery query : completionQueries) {
             long before = System.currentTimeMillis();
+            
+            // Tools 정보 추출 (CompletionQuery에서 가져옴)
+            List<Tool> tools = extractToolsFromQuery(query);
+            
             SimpleCompletionResponse scr = chatComplete(model, query.messages, query.settings.maxOutputTokens,
-                    query.settings.temperature, query.settings.topP, query.settings.stopSequences);
+                    query.settings.temperature, query.settings.topP, query.settings.stopSequences, tools);
 
             synchronized (usageData) {
                 usageData.totalComputationTimeMS += (System.currentTimeMillis() - before);
@@ -180,19 +199,63 @@ public class CustomPlugin extends CustomLLMClient {
         return ret;
     }
 
+    // Tools 추출을 위한 헬퍼 메서드
+    private List<Tool> extractToolsFromQuery(CompletionQuery query) {
+        // Dataiku의 CompletionQuery에서 tools 정보를 추출하는 로직
+        // 실제 구현에서는 Dataiku의 API에 따라 달라질 수 있음
+        try {
+            // query.settings에서 tools 정보를 가져오는 시도
+            if (query.settings != null) {
+                // Dataiku의 설정에서 tools 정보를 추출하는 로직
+                // 예: query.settings.getTools() 또는 유사한 메서드
+                return null; // 실제 구현 필요
+            }
+        } catch (Exception e) {
+            logger.warn("Could not extract tools from query: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // OpenAI 호환 메시지 처리 로직
     private void addMessagesInObject(ObjectBuilder ob, List<ChatMessage> messages) {
         JsonArray jsonMessages = new JsonArray();
 
         messages.forEach(m -> {
             JF.ObjectBuilder msgBuilder = JF.obj().with("role", m.role);
-            msgBuilder.with("content", m.getText());
+            
+            // Content가 있는 경우만 추가 (null이 아닌 경우)
+            if (m.getText() != null && !m.getText().isEmpty()) {
+                msgBuilder.with("content", m.getText());
+            }
+            
+            // OpenAI 호환 tool_calls 처리 (assistant 메시지에서)
+            if ("assistant".equals(m.role) && m.toolCalls != null && !m.toolCalls.isEmpty()) {
+                JsonArray toolCallsArray = new JsonArray();
+                m.toolCalls.forEach(tc -> {
+                    JF.ObjectBuilder toolCallBuilder = JF.obj()
+                        .with("id", tc.id)
+                        .with("type", tc.type);
+                    
+                    if (tc.function != null) {
+                        JF.ObjectBuilder functionBuilder = JF.obj()
+                            .with("name", tc.function.name)
+                            .with("arguments", tc.function.arguments);
+                        toolCallBuilder.with("function", functionBuilder.get());
+                    }
+                    
+                    toolCallsArray.add(toolCallBuilder.get());
+                });
+                msgBuilder.with("tool_calls", toolCallsArray);
+            }
+            
             jsonMessages.add(msgBuilder.get());
         });
         ob.with("messages", jsonMessages);
     }
 
+    // OpenAI 호환 설정 처리 로직
     private void addSettingsInObject(ObjectBuilder ob, String model, Integer maxTokens, Double temperature,
-            Double topP, List<String> stopSequences) {
+            Double topP, List<String> stopSequences, List<Tool> tools) {
         ob.with("model", model);
 
         if (maxTokens != null) {
@@ -207,16 +270,32 @@ public class CustomPlugin extends CustomLLMClient {
         if (stopSequences != null && !stopSequences.isEmpty()) {
             ob.with("stop", stopSequences);
         }
+        
+        // OpenAI 호환 tools 추가
+        if (tools != null && !tools.isEmpty()) {
+            JsonArray toolsArray = new JsonArray();
+            tools.forEach(tool -> {
+                JF.ObjectBuilder toolBuilder = JF.obj().with("type", tool.type);
+                if (tool.function != null) {
+                    JF.ObjectBuilder functionBuilder = JF.obj()
+                        .with("name", tool.function.name)
+                        .with("description", tool.function.description)
+                        .with("parameters", tool.function.parameters);
+                    toolBuilder.with("function", functionBuilder.get());
+                }
+                toolsArray.add(toolBuilder.get());
+            });
+            ob.with("tools", toolsArray);
+        }
     }
 
+    // OpenAI 호환 Chat Completion 메서드
     public SimpleCompletionResponse chatComplete(String model, List<ChatMessage> messages, Integer maxTokens,
-            Double temperature, Double topP, List<String> stopSequences) throws IOException {
+            Double temperature, Double topP, List<String> stopSequences, List<Tool> tools) throws IOException {
         ObjectBuilder ob = JF.obj();
 
         addMessagesInObject(ob, messages);
-        addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences);
-
-        logger.info("[DEBUG] Raw Chat completion request: " + JSON.pretty(ob.get()));
+        addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences, tools);
 
         RawChatCompletionResponse rcr = client.postObjectToJSON(endpointUrl, networkSettings.queryTimeoutMS,
                 RawChatCompletionResponse.class, ob.get());
@@ -231,6 +310,12 @@ public class CustomPlugin extends CustomLLMClient {
         ret.text = rcr.choices.get(0).message.content;
         ret.promptTokens = rcr.usage.prompt_tokens;
         ret.completionTokens = rcr.usage.completion_tokens;
+        
+        // OpenAI 호환 tool_calls 처리
+        if (rcr.choices.get(0).message.tool_calls != null) {
+            ret.toolCalls = rcr.choices.get(0).message.tool_calls;
+        }
+        
         return ret;
     }
 
@@ -251,17 +336,21 @@ public class CustomPlugin extends CustomLLMClient {
     }
 
     public void streamComplete(CompletionQuery query, StreamedCompletionResponseConsumer consumer) throws Exception {
+        // Tools 정보 추출
+        List<Tool> tools = extractToolsFromQuery(query);
+        
         streamChatComplete(consumer, model, query.messages, query.settings.maxOutputTokens,
-                query.settings.temperature, query.settings.topP, query.settings.stopSequences);
+                query.settings.temperature, query.settings.topP, query.settings.stopSequences, tools);
     }
 
+    // OpenAI 호환 Streaming 메서드
     public void streamChatComplete(StreamedCompletionResponseConsumer consumer, String model,
             List<ChatMessage> messages, Integer maxTokens, Double temperature, Double topP,
-            List<String> stopSequences) throws Exception {
+            List<String> stopSequences, List<Tool> tools) throws Exception {
         ObjectBuilder ob = JF.obj();
 
         addMessagesInObject(ob, messages);
-        addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences);
+        addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences, tools);
         ob.with("stream", true);
 
         logger.info("Custom chat completion: " + JSON.pretty(ob.get()));
@@ -293,12 +382,66 @@ public class CustomPlugin extends CustomLLMClient {
             if (chunkText != null) {
                 StreamedCompletionResponseChunk chunk = new StreamedCompletionResponseChunk();
                 chunk.text = chunkText;
+                
+                // OpenAI 호환 tool_calls 처리
+                JsonObject toolCalls = JsonUtils.getOrNullObj(data, "choices", 0, "delta", "tool_calls");
+                if (toolCalls != null) {
+                    chunk.toolCalls = parseToolCalls(toolCalls);
+                }
+                
                 consumer.onStreamChunk(chunk);
             }
         }
 
         StreamedCompletionResponseFooter footer = new StreamedCompletionResponseFooter();
         consumer.onStreamComplete(footer);
+    }
+
+    // Tool calls 파싱을 위한 헬퍼 메서드
+    private List<ToolCall> parseToolCalls(JsonObject toolCallsData) {
+        List<ToolCall> toolCalls = new ArrayList<>();
+        
+        try {
+            if (toolCallsData.has("id")) {
+                // 단일 tool call
+                ToolCall toolCall = new ToolCall();
+                toolCall.id = JsonUtils.getOrNullStr(toolCallsData, "id");
+                toolCall.type = JsonUtils.getOrNullStr(toolCallsData, "type");
+                
+                JsonObject functionData = JsonUtils.getOrNullObj(toolCallsData, "function");
+                if (functionData != null) {
+                    FunctionCall functionCall = new FunctionCall();
+                    functionCall.name = JsonUtils.getOrNullStr(functionData, "name");
+                    functionCall.arguments = JsonUtils.getOrNullStr(functionData, "arguments");
+                    toolCall.function = functionCall;
+                }
+                
+                toolCalls.add(toolCall);
+            } else if (toolCallsData.isJsonArray()) {
+                // 배열 형태의 tool calls
+                JsonArray toolCallsArray = toolCallsData.getAsJsonArray();
+                for (int i = 0; i < toolCallsArray.size(); i++) {
+                    JsonObject toolCallData = toolCallsArray.get(i).getAsJsonObject();
+                    ToolCall toolCall = new ToolCall();
+                    toolCall.id = JsonUtils.getOrNullStr(toolCallData, "id");
+                    toolCall.type = JsonUtils.getOrNullStr(toolCallData, "type");
+                    
+                    JsonObject functionData = JsonUtils.getOrNullObj(toolCallData, "function");
+                    if (functionData != null) {
+                        FunctionCall functionCall = new FunctionCall();
+                        functionCall.name = JsonUtils.getOrNullStr(functionData, "name");
+                        functionCall.arguments = JsonUtils.getOrNullStr(functionData, "arguments");
+                        toolCall.function = functionCall;
+                    }
+                    
+                    toolCalls.add(toolCall);
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Error parsing tool calls: " + e.getMessage());
+        }
+        
+        return toolCalls;
     }
 
     @Override
@@ -348,22 +491,5 @@ public class CustomPlugin extends CustomLLMClient {
         ret.embedding = rer.data.get(0).embedding;
         ret.promptTokens = rer.usage.total_tokens;
         return ret;
-    }
-
-    // HTTP 요청에 사용자 정의 헤더를 추가하는 메서드
-    private void setAdditionalHeadersInRequest(org.apache.http.client.methods.HttpRequestBase request) {
-        // headerN_key, headerN_value가 모두 있을 때만 헤더로 추가
-        if (header1_key != null && !header1_key.isEmpty() && header1_value != null && !header1_value.isEmpty()) {
-            request.addHeader(header1_key.trim(), header1_value.trim());
-        }
-        if (header2_key != null && !header2_key.isEmpty() && header2_value != null && !header2_value.isEmpty()) {
-            request.addHeader(header2_key.trim(), header2_value.trim());
-        }
-        if (header3_key != null && !header3_key.isEmpty() && header3_value != null && !header3_value.isEmpty()) {
-            request.addHeader(header3_key.trim(), header3_value.trim());
-        }
-        if (header4_key != null && !header4_key.isEmpty() && header4_value != null && !header4_value.isEmpty()) {
-            request.addHeader(header4_key.trim(), header4_value.trim());
-        }
     }
 } 

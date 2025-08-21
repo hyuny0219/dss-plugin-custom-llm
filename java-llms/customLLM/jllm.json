@@ -5,6 +5,12 @@
     },
     "params": [
         {
+            "name": "apikeys",
+            "label": "Keys preset",
+            "type": "PRESET",
+            "parameterSetId": "api-credentials"
+        },
+        {
             "name": "endpoint_url",
             "label": "Endpoint URL",
             "type": "STRING",
@@ -71,59 +77,11 @@
             "mandatory": true
         },
         {
-            "name": "header1_key",
-            "label": "Custom Header 1 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header1_value",
-            "label": "Custom Header 1 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header2_key",
-            "label": "Custom Header 2 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header2_value",
-            "label": "Custom Header 2 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header3_key",
-            "label": "Custom Header 3 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header3_value",
-            "label": "Custom Header 3 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header4_key",
-            "label": "Custom Header 4 Key",
-            "type": "STRING",
-            "description": "Custom HTTP header name (optional)",
-            "mandatory": false
-        },
-        {
-            "name": "header4_value",
-            "label": "Custom Header 4 Value",
-            "type": "STRING",
-            "description": "Custom HTTP header value (optional)",
+            "name": "enableToolCalling",
+            "label": "Enable Tool Calling",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "description": "Enable OpenAI-compatible tool calling support",
             "mandatory": false
         }
     ],
