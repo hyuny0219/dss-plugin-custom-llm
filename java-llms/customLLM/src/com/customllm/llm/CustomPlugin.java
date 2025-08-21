@@ -296,6 +296,7 @@ public class CustomPlugin extends CustomLLMClient {
 
         addMessagesInObject(ob, messages);
         addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences, tools);
+        addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences);
 
         RawChatCompletionResponse rcr = client.postObjectToJSON(endpointUrl, networkSettings.queryTimeoutMS,
                 RawChatCompletionResponse.class, ob.get());
