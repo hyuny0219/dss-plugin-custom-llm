@@ -200,7 +200,7 @@ public class CustomPlugin extends CustomLLMClient {
         return ret;
     }
 
-    // Tools 추출을 위한 헬퍼 메서드 - 실제 구현
+    // Tools 추출을 위한 헬퍼 메서드 - Dataiku API에 맞게 수정
     private List<Tool> extractToolsFromQuery(CompletionQuery query) {
         List<Tool> tools = new ArrayList<>();
         
@@ -211,10 +211,15 @@ public class CustomPlugin extends CustomLLMClient {
             if (query.settings != null) {
                 logger.info("Query settings type: " + query.settings.getClass().getName());
                 
-                // settings가 JsonObject인 경우 직접 접근
-                if (query.settings instanceof JsonObject) {
-                    JsonObject settingsObj = (JsonObject) query.settings;
-                    logger.info("Settings JSON: " + JSON.pretty(settingsObj));
+                // LLMCompletionSettings에서 tools 정보를 추출하는 방법
+                // Dataiku의 API 구조에 따라 다를 수 있음
+                
+                // 방법 1: settings를 JSON으로 변환하여 접근
+                try {
+                    String settingsJson = JSON.json(query.settings);
+                    logger.info("Settings JSON: " + settingsJson);
+                    
+                    JsonObject settingsObj = JSON.parse(settingsJson, JsonObject.class);
                     
                     if (settingsObj.has("tools")) {
                         JsonArray toolsArray = settingsObj.getAsJsonArray("tools");
@@ -247,9 +252,63 @@ public class CustomPlugin extends CustomLLMClient {
                     } else {
                         logger.warn("No 'tools' field found in settings");
                     }
-                } else {
-                    logger.warn("Settings is not a JsonObject: " + query.settings.getClass().getName());
+                    
+                } catch (Exception e) {
+                    logger.warn("Could not parse settings as JSON: " + e.getMessage());
+                    
+                    // 방법 2: Reflection을 사용하여 tools 필드에 직접 접근
+                    try {
+                        java.lang.reflect.Field toolsField = query.settings.getClass().getDeclaredField("tools");
+                        toolsField.setAccessible(true);
+                        Object toolsObj = toolsField.get(query.settings);
+                        
+                        if (toolsObj != null) {
+                            logger.info("Found tools field via reflection: " + toolsObj.getClass().getName());
+                            
+                            // toolsObj가 List인 경우
+                            if (toolsObj instanceof List) {
+                                List<?> toolsList = (List<?>) toolsObj;
+                                logger.info("Tools list size: " + toolsList.size());
+                                
+                                for (Object toolObj : toolsList) {
+                                    if (toolObj != null) {
+                                        logger.info("Tool object: " + toolObj.getClass().getName());
+                                        
+                                        // Tool 객체를 JSON으로 변환하여 파싱
+                                        String toolJson = JSON.json(toolObj);
+                                        JsonObject toolJsonObj = JSON.parse(toolJson, JsonObject.class);
+                                        
+                                        Tool tool = new Tool();
+                                        tool.type = getJsonString(toolJsonObj, "type");
+                                        
+                                        if (toolJsonObj.has("function")) {
+                                            JsonObject functionObj = toolJsonObj.getAsJsonObject("function");
+                                            Function function = new Function();
+                                            function.name = getJsonString(functionObj, "name");
+                                            function.description = getJsonString(functionObj, "description");
+                                            
+                                            if (functionObj.has("parameters")) {
+                                                function.parameters = functionObj.getAsJsonObject("parameters");
+                                            }
+                                            
+                                            tool.function = function;
+                                        }
+                                        
+                                        tools.add(tool);
+                                        logger.info("Added tool via reflection: " + tool.type + " - " + 
+                                                  (tool.function != null ? tool.function.name : "no function"));
+                                    }
+                                }
+                            }
+                        }
+                        
+                    } catch (NoSuchFieldException e2) {
+                        logger.warn("No 'tools' field found via reflection: " + e2.getMessage());
+                    } catch (Exception e2) {
+                        logger.warn("Error accessing tools via reflection: " + e2.getMessage());
+                    }
                 }
+                
             } else {
                 logger.warn("Query settings is null");
             }
