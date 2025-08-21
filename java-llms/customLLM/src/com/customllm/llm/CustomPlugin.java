@@ -200,11 +200,67 @@ public class CustomPlugin extends CustomLLMClient {
         return ret;
     }
 
-    // Tools 추출을 위한 헬퍼 메서드 - 안전한 구현
+    // Tools 추출을 위한 헬퍼 메서드 - 실제 구현
     private List<Tool> extractToolsFromQuery(CompletionQuery query) {
-        // 현재는 기본적으로 null을 반환하되, 안전하게 처리
-        logger.debug("Extracting tools from query - currently returning null for safety");
-        return null;
+        List<Tool> tools = new ArrayList<>();
+        
+        try {
+            logger.info("Extracting tools from query...");
+            
+            // query.settings에서 tools 정보를 추출
+            if (query.settings != null) {
+                logger.info("Query settings type: " + query.settings.getClass().getName());
+                
+                // settings가 JsonObject인 경우 직접 접근
+                if (query.settings instanceof JsonObject) {
+                    JsonObject settingsObj = (JsonObject) query.settings;
+                    logger.info("Settings JSON: " + JSON.pretty(settingsObj));
+                    
+                    if (settingsObj.has("tools")) {
+                        JsonArray toolsArray = settingsObj.getAsJsonArray("tools");
+                        logger.info("Found tools array with " + toolsArray.size() + " tools");
+                        
+                        for (JsonElement toolElement : toolsArray) {
+                            if (toolElement.isJsonObject()) {
+                                JsonObject toolObj = toolElement.getAsJsonObject();
+                                Tool tool = new Tool();
+                                tool.type = getJsonString(toolObj, "type");
+                                
+                                if (toolObj.has("function")) {
+                                    JsonObject functionObj = toolObj.getAsJsonObject("function");
+                                    Function function = new Function();
+                                    function.name = getJsonString(functionObj, "name");
+                                    function.description = getJsonString(functionObj, "description");
+                                    
+                                    if (functionObj.has("parameters")) {
+                                        function.parameters = functionObj.getAsJsonObject("parameters");
+                                    }
+                                    
+                                    tool.function = function;
+                                }
+                                
+                                tools.add(tool);
+                                logger.info("Added tool: " + tool.type + " - " + 
+                                          (tool.function != null ? tool.function.name : "no function"));
+                            }
+                        }
+                    } else {
+                        logger.warn("No 'tools' field found in settings");
+                    }
+                } else {
+                    logger.warn("Settings is not a JsonObject: " + query.settings.getClass().getName());
+                }
+            } else {
+                logger.warn("Query settings is null");
+            }
+            
+            logger.info("Extracted " + tools.size() + " tools total");
+            
+        } catch (Exception e) {
+            logger.error("Error extracting tools from query: " + e.getMessage(), e);
+        }
+        
+        return tools;
     }
 
     // OpenAI 호환 메시지 처리 로직 - 안전한 구현
@@ -269,7 +325,7 @@ public class CustomPlugin extends CustomLLMClient {
         ob.with("messages", jsonMessages);
     }
 
-    // OpenAI 호환 설정 처리 로직 - 안전한 구현
+    // OpenAI 호환 설정 처리 로직 - 강제 tool calling
     private void addSettingsInObject(ObjectBuilder ob, String model, Integer maxTokens, Double temperature,
             Double topP, List<String> stopSequences, List<Tool> tools) {
         ob.with("model", model);
@@ -287,7 +343,7 @@ public class CustomPlugin extends CustomLLMClient {
             ob.with("stop", stopSequences);
         }
         
-        // OpenAI 호환 tools 추가 - 안전한 구현
+        // OpenAI 호환 tools 추가 - 강제 활성화
         if (tools != null && !tools.isEmpty()) {
             try {
                 JsonArray toolsArray = new JsonArray();
@@ -297,8 +353,12 @@ public class CustomPlugin extends CustomLLMClient {
                         if (tool.function != null) {
                             JF.ObjectBuilder functionBuilder = JF.obj()
                                 .with("name", tool.function.name)
-                                .with("description", tool.function.description)
-                                .with("parameters", tool.function.parameters);
+                                .with("description", tool.function.description);
+                            
+                            if (tool.function.parameters != null) {
+                                functionBuilder.with("parameters", tool.function.parameters);
+                            }
+                            
                             toolBuilder.with("function", functionBuilder.get());
                         }
                         toolsArray.add(toolBuilder.get());
@@ -309,14 +369,19 @@ public class CustomPlugin extends CustomLLMClient {
                 
                 if (toolsArray.size() > 0) {
                     ob.with("tools", toolsArray);
+                    // Tool calling 강제 활성화
+                    ob.with("tool_choice", "auto");
+                    logger.info("Added " + toolsArray.size() + " tools to request with tool_choice=auto");
                 }
             } catch (Exception e) {
                 logger.warn("Error adding tools to request: " + e.getMessage());
             }
+        } else {
+            logger.warn("No tools provided for tool calling");
         }
     }
 
-    // OpenAI 호환 Chat Completion 메서드 - 안전한 구현
+    // OpenAI 호환 Chat Completion 메서드 - 강화된 디버깅
     public SimpleCompletionResponse chatComplete(String model, List<ChatMessage> messages, Integer maxTokens,
             Double temperature, Double topP, List<String> stopSequences, List<Tool> tools) throws IOException {
         ObjectBuilder ob = JF.obj();
@@ -326,7 +391,15 @@ public class CustomPlugin extends CustomLLMClient {
             addSettingsInObject(ob, model, maxTokens, temperature, topP, stopSequences, tools);
 
             logger.info("Sending chat completion request to: " + endpointUrl);
-            logger.debug("Request payload: " + JSON.pretty(ob.get()));
+            logger.info("Model: " + model);
+            logger.info("Tools count: " + (tools != null ? tools.size() : 0));
+            if (tools != null) {
+                for (Tool tool : tools) {
+                    logger.info("Tool: " + tool.type + " - " + 
+                              (tool.function != null ? tool.function.name : "no function"));
+                }
+            }
+            logger.info("Request payload: " + JSON.pretty(ob.get()));
 
             RawChatCompletionResponse rcr = client.postObjectToJSON(endpointUrl, networkSettings.queryTimeoutMS,
                     RawChatCompletionResponse.class, ob.get());
@@ -343,16 +416,23 @@ public class CustomPlugin extends CustomLLMClient {
             if (rcr.choices.get(0).message != null) {
                 ret.text = rcr.choices.get(0).message.content;
                 
-                // OpenAI 호환 tool_calls 처리 - 타입 변환 문제 해결
+                // OpenAI 호환 tool_calls 처리 - 강화된 로깅
                 if (rcr.choices.get(0).message.tool_calls != null) {
                     try {
-                        // Dataiku의 AbstractToolCall로 변환하는 로직
-                        // 현재는 기본적으로 null로 설정 (실제 구현 필요)
-                        ret.toolCalls = null; // TODO: ToolCall을 AbstractToolCall로 변환
                         logger.info("Tool calls received: " + rcr.choices.get(0).message.tool_calls.size());
+                        for (ToolCall toolCall : rcr.choices.get(0).message.tool_calls) {
+                            logger.info("Tool call: " + toolCall.id + " - " + toolCall.type);
+                            if (toolCall.function != null) {
+                                logger.info("Function: " + toolCall.function.name + " - " + toolCall.function.arguments);
+                            }
+                        }
+                        // TODO: ToolCall을 AbstractToolCall로 변환
+                        ret.toolCalls = null;
                     } catch (Exception e) {
                         logger.warn("Error processing tool_calls in response: " + e.getMessage());
                     }
+                } else {
+                    logger.warn("No tool calls in response - LLM may not be using tools");
                 }
             }
             
