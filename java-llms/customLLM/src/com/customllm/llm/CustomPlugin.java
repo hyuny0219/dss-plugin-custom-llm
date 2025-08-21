@@ -430,7 +430,7 @@ public class CustomPlugin extends CustomLLMClient {
 
                 try {
                     JsonObject data = JSON.parse(event.data, JsonObject.class);
-                    String chunkText = getJsonString(data, "choices", 0, "delta", "content");
+                    String chunkText = getJsonString(data, "choices", "0", "delta", "content");
 
                     if (chunkText != null) {
                         StreamedCompletionResponseChunk chunk = new StreamedCompletionResponseChunk();
@@ -438,7 +438,7 @@ public class CustomPlugin extends CustomLLMClient {
                         
                         // OpenAI 호환 tool_calls 처리 - 안전한 구현
                         try {
-                            JsonObject toolCalls = getJsonObject(data, "choices", 0, "delta", "tool_calls");
+                            JsonObject toolCalls = getJsonObject(data, "choices", "0", "delta", "tool_calls");
                             if (toolCalls != null) {
                                 // 타입 변환 문제 해결을 위해 null로 설정
                                 chunk.toolCalls = null; // TODO: ToolCall을 AbstractToolCall로 변환
@@ -464,7 +464,7 @@ public class CustomPlugin extends CustomLLMClient {
         }
     }
 
-    // 안전한 JSON 접근을 위한 헬퍼 메서드들
+    // 안전한 JSON 접근을 위한 헬퍼 메서드들 - 개선된 버전
     private String getJsonString(JsonObject obj, String... path) {
         try {
             JsonElement element = getJsonElement(obj, path);
@@ -487,12 +487,29 @@ public class CustomPlugin extends CustomLLMClient {
         try {
             JsonElement current = obj;
             for (String key : path) {
-                if (current == null || !current.isJsonObject()) {
+                if (current == null) {
                     return null;
                 }
-                JsonObject jsonObj = current.getAsJsonObject();
-                if (jsonObj.has(key)) {
-                    current = jsonObj.get(key);
+                
+                if (current.isJsonObject()) {
+                    JsonObject jsonObj = current.getAsJsonObject();
+                    if (jsonObj.has(key)) {
+                        current = jsonObj.get(key);
+                    } else {
+                        return null;
+                    }
+                } else if (current.isJsonArray()) {
+                    JsonArray jsonArray = current.getAsJsonArray();
+                    try {
+                        int index = Integer.parseInt(key);
+                        if (index >= 0 && index < jsonArray.size()) {
+                            current = jsonArray.get(index);
+                        } else {
+                            return null;
+                        }
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
                 } else {
                     return null;
                 }
